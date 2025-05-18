@@ -1,29 +1,26 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
-#include <numeric>
 #include <ranges>
 
 #include <fmt/format.h>
 
-#include "ctre_inc.h"
-#include "timer.h"
-
 auto get_input()
 {
-	return 0;
+	std::string ln;
+	std::getline(std::cin, ln);
+	return ln;
 }
 
-int64_t pt1(auto const& in_addr_t)
+auto pt1(auto const& in)
 {
-	timer t("p1");
-	return 0;
+	return std::ranges::fold_left(in, 0, [](auto l, auto r){ return l + (r == '(' ? 1 : -1);});
 }
 
-int64_t pt2(auto const& in)
+auto pt2(auto const& in)
 {
-	timer t("p2");
-	return 0;
+	int n = 0;
+	return 1 + std::distance(in.begin(), std::ranges::find_if(in, [&n](auto c){ n += (c == '(' ? 1 : -1); return n < 0;}));
 }
 
 int main()

@@ -1,29 +1,60 @@
 #include <iostream>
 #include <string>
+#include <vector>
+#include <array>
 #include <algorithm>
-#include <numeric>
 #include <ranges>
 
 #include <fmt/format.h>
 
 #include "ctre_inc.h"
-#include "timer.h"
+
+struct box
+{
+	int l_;
+	int w_;
+	int h_;
+};
 
 auto get_input()
 {
-	return 0;
+	std::vector<box> rv;
+	std::string ln;
+	while(std::getline(std::cin, ln))
+	{
+		if(auto[m, l, w, h] = ctre::match<"(\\d+)x(\\d+)x(\\d+)">(ln); m)
+			rv.emplace_back(l.to_number<int>(), w.to_number<int>(), h.to_number<int>());
+	}
+	return rv;
 }
 
-int64_t pt1(auto const& in_addr_t)
+int area(box const& b)
 {
-	timer t("p1");
-	return 0;
+	std::array an = {
+		b.l_ * b.h_,
+		b.l_ * b.w_,
+		b.h_ * b.w_};
+	return 2 * std::ranges::fold_left(an, 0, std::plus<>()) +
+				*std::ranges::min_element(an);
 }
 
-int64_t pt2(auto const& in)
+auto pt1(auto const& in)
 {
-	timer t("p2");
-	return 0;
+	return std::ranges::fold_left(in, 0, [](auto s, auto& b){ return s + area(b);});
+}
+
+int ribbon(box const& b)
+{
+	std::array pn = {
+		2 * b.l_ + 2 * b.h_,
+		2 * b.l_ + 2 * b.w_,
+		2 * b.h_ + 2 * b.w_};
+		return *std::ranges::min_element(pn) + b.l_ * b.w_ * b.h_;
+}
+
+auto pt2(auto const& in)
+{
+	return std::ranges::fold_left(in, 0, [](auto s, auto& b){ return s + ribbon(b);});
 }
 
 int main()

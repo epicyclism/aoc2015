@@ -31,8 +31,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
-# dump_cmake_variables(CXX)
-
 FetchContent_Declare( ctre 
     GIT_REPOSITORY https://github.com/hanickadot/compile-time-regular-expressions
     GIT_TAG origin/main
@@ -45,6 +43,11 @@ if(z3_FOUND)
     add_compile_definitions(USE_Z3)
     message(STATUS "Got Z3")
 endif()
+find_package(OpenSSL QUIET)
+if(OpenSSL_FOUND)
+    add_compile_definitions(USE_OPENSSL)
+endif()
+
 find_package(mdspan CONFIG REQUIRED)
 find_path(SYSTEM_INCLUDE_DIR experimental/mdspan)
 include_directories(${SYSTEM_INCLUDE_DIR})

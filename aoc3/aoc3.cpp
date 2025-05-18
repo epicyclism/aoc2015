@@ -3,27 +3,75 @@
 #include <algorithm>
 #include <numeric>
 #include <ranges>
+#include <set>
 
 #include <fmt/format.h>
 
-#include "ctre_inc.h"
 #include "timer.h"
 
 auto get_input()
 {
-	return 0;
+	std::string ln;
+	std::getline(std::cin, ln);
+	return ln;
 }
 
-int64_t pt1(auto const& in_addr_t)
+void update_xy(auto c, int& x, int& y)
+{
+	switch(c)
+	{
+		case '>':
+			++x;
+			break;
+		case '<':
+			--x;
+			break;
+		case '^':
+			++y;
+			break;
+		case 'v':
+			--y;
+			break;
+		default:
+			break;
+	}
+}
+auto pt1(auto const& in)
 {
 	timer t("p1");
-	return 0;
+	std::set<std::pair<int, int>> houses;
+	int x = 0;
+	int y = 0;
+	houses.emplace(x, y);
+	for(auto c: in)
+	{
+		update_xy(c, x, y);
+		houses.emplace(x, y);
+	}
+	return houses.size();
 }
 
-int64_t pt2(auto const& in)
+auto pt2(auto const& in)
 {
 	timer t("p2");
-	return 0;
+	std::set<std::pair<int, int>> houses;
+	int x = 0;
+	int y = 0;
+	houses.emplace(x, y);
+	for(size_t n = 0; n < in.size(); n += 2)
+	{
+		update_xy(in[n], x, y);
+		houses.emplace(x, y);
+	}
+	x = 0;
+	y = 0;
+	houses.emplace(x, y);
+	for(size_t n = 1; n < in.size(); n += 2)
+	{
+		update_xy(in[n], x, y);
+		houses.emplace(x, y);
+	}
+	return houses.size();
 }
 
 int main()
