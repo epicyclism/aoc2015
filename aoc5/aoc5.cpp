@@ -1,29 +1,80 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <algorithm>
 #include <numeric>
 #include <ranges>
 
 #include <fmt/format.h>
 
-#include "ctre_inc.h"
 #include "timer.h"
 
 auto get_input()
 {
-	return 0;
+	std::vector<std::string> rv;
+	std::string ln;
+	while(std::getline(std::cin, ln))
+		rv.emplace_back(std::move(ln));
+	return rv;
 }
 
-int64_t pt1(auto const& in_addr_t)
+bool is_nice(std::string const& s)
+{
+	auto is_vowel = [](char c)
+	{
+		return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u';
+	};
+	int vc = 0;
+	bool two = false;
+	char p = '_';
+	for(auto c : s)
+	{
+		vc += is_vowel(c);
+		if( c == p)
+			two = true;
+		if( (c == 'b' && p =='a' ) ||
+			 (c == 'd' && p == 'c') ||
+			 (c == 'q' && p == 'p') ||
+			 (c == 'y' &&  p == 'x'))
+			return false;
+		p = c; 
+	}
+	return vc > 2 && two;
+}
+
+int pt1(auto const& in)
 {
 	timer t("p1");
-	return 0;
+	return std::ranges::count_if(in, is_nice);
 }
 
-int64_t pt2(auto const& in)
+bool is_very_nice(std::string const& s)
+{
+	bool c1 = false;
+	bool c2 = false;
+
+	for(auto n = 0; n < s.size() - 3; ++n)
+		for(auto m = n + 2; m < s.size() - 1; ++m)
+			if(s[n] == s[m] && s[n + 1] == s[m + 1])
+			{
+				c1 = true;
+				break;
+			}
+
+	for(auto n = 0; n < s.size() - 2; ++n)
+		if(s[n] == s[n + 2])
+		{
+			c2 = true;
+			break;
+		}
+
+	return c1 && c2;
+}
+
+int pt2(auto const& in)
 {
 	timer t("p2");
-	return 0;
+	return std::ranges::count_if(in, is_very_nice);
 }
 
 int main()
