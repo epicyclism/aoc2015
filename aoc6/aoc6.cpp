@@ -53,8 +53,7 @@ template<typename F> void act(job const& j, F&& f)
 	int cols = j.bx_ - j.tx_ + 1;
 	for(int r = 0; r < rows; ++r )
 	{
-		for( int p = offset; p < offset + cols; ++p)
-			f(p);
+		f(offset, cols);
 		offset += 1000;
 	}
 }
@@ -67,13 +66,13 @@ int pt1(auto const& in)
 		switch(j.task_)
 		{
 			case task_t::turn_on:
-				act(j, [&](auto p){bs.set(p);});
+				act(j, [&](auto p, auto n){for(auto c = 0; c < n; ++c) bs.set(p++);});
 				break;
 			case task_t::turn_off:
-				act(j, [&](auto p){bs.reset(p);});
+				act(j, [&](auto p, auto n){for(auto c = 0; c < n; ++c) bs.reset(p++);});
 				break;
 			case task_t::toggle:
-				act(j, [&](auto p){bs.flip(p);});
+				act(j, [&](auto p, auto n){for(auto c = 0; c < n; ++c) bs.flip(p++);});
 				break;
 		}
 	return bs.count();
@@ -88,13 +87,13 @@ int64_t pt2(auto const& in)
 		switch(j.task_)
 		{
 			case task_t::turn_on:
-				act(j, [&](auto p){++vs[p];});
+				act(j, [&](auto p, auto n){for(auto c = 0; c < n; ++c) ++vs[p++];});
 				break;
 			case task_t::turn_off:
-				act(j, [&](auto p){if(vs[p] > 0) --vs[p];});
+				act(j, [&](auto p, auto n){for(auto c = 0; c < n; ++c){if(vs[p] > 0) --vs[p]; ++p;}});
 				break;
 			case task_t::toggle:
-				act(j, [&](auto p){vs[p] += 2;});
+				act(j, [&](auto p, auto n){for(auto c = 0; c < n; ++c) vs[p++] += 2;});
 				break;
 		}
 
