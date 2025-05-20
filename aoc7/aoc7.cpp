@@ -13,8 +13,9 @@
 
 enum class op_t { SET, AND, OR, NOT, LSHIFT, RSHIFT };
 using val_t = uint32_t;
+constexpr size_t mx_tab = 0x3ff; // more than 27*27
 
-uint32_t nm_to_keyvar(std::string_view s)
+val_t nm_to_keyvar(std::string_view s)
 {
 	uint32_t r = 0;
 	if(std::isdigit(s[0]))
@@ -23,19 +24,21 @@ uint32_t nm_to_keyvar(std::string_view s)
 	{
 		for(auto c: s)
 		{
-			r *= 26;
-			r += c - 'a';
+			r *= 27;
+			r += c - 'a' + 1;
 		}
 		r |= 0x80000000;
 	}
 	return r;
 }
 
-constexpr size_t mx_tab = 0x3ff; // more than 26*26
-
 struct table_t
 {
 	std::array<uint16_t, mx_tab> tab_;
+	table_t ()
+	{
+		tab_.fill(0xffff);
+	}
 	uint16_t get(val_t a)
 	{
 		if(a & 0x80000000)
@@ -56,13 +59,11 @@ struct gate_t
 	val_t out_;
 };
 
-void act(gate_t& g, table_t& t)
+void act(gate_t const& g, table_t& t)
 {
 	switch(g.op_)
 	{
 		case op_t::SET:
-		if(g.out_ == 0x80000000)
-			fmt::println("Set a = {} = {}", g.in0_, t.get(g.in0_));
 			t.set(g.out_, t.get(g.in0_));
 			break;
 		case op_t::AND:
@@ -83,7 +84,6 @@ void act(gate_t& g, table_t& t)
 	}
 }
 
-//OR, NOT, LSHIFT, RSHIFT
 auto get_input()
 {
 	std::vector<gate_t> rv;
@@ -114,30 +114,39 @@ auto get_input()
 	return rv;
 }
 
-uint16_t pt1(auto& in)
+uint16_t pt1(auto const& in)
 {
 	timer t("p1");
 	table_t tab;
 	for(int n = 0; n < 100; ++n)
-	{
 		for(auto& g: in)
 			act(g, tab);
-		std::println("lx = {} a = {}", tab.get(nm_to_keyvar("lx")), tab.get(nm_to_keyvar("a")));
-	}
 	return tab.get(nm_to_keyvar("a"));
 }
 
-uint16_t pt2(auto const& in)
+uint16_t pt2(auto& in, uint16_t b)
 {
 	timer t("p2");
-	return 0;
+	// edit the code
+	auto bd = nm_to_keyvar("b");
+	for(auto& g: in)
+		if(g.op_ == op_t::SET && g.out_ == bd )
+		{
+			g.in0_ = b;
+			break;
+		}
+	table_t tab;
+	for(int n = 0; n < 100; ++n)
+		for(auto& g: in)
+			act(g, tab);
+	return tab.get(nm_to_keyvar("a"));
 }
 
 int main()
 {
 	auto in = get_input();
 	auto p1 = pt1(in);
-	auto p2 = pt2(in);
+	auto p2 = pt2(in, p1);
 	fmt::println("pt1 = {}", p1);
 	fmt::println("pt2 = {}", p2);
 }
