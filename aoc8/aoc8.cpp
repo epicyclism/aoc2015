@@ -73,14 +73,29 @@ int64_t pt1(auto const& in)
 {
 	timer t("p1");
 	auto ql = std::ranges::fold_left(in, 0ULL, [](auto sm, auto const& s){ return sm + quote_oh(s);});
-
 	return ql;
+}
+
+size_t up_quote(std::string_view s)
+{
+	size_t ss = 2;
+	for(auto c: s)
+	{
+		if(c == '"')
+			++ss;
+		else
+		if(c == '\\')
+			++ss;
+		++ss;
+	}
+	return ss - s.size();
 }
 
 int64_t pt2(auto const& in)
 {
 	timer t("p2");
-	return 0;
+	auto ql = std::ranges::fold_left(in, 0ULL, [](auto sm, auto const& s){ return sm + up_quote(s);});
+	return ql;
 }
 
 int main()
