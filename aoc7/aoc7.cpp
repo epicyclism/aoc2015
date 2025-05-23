@@ -84,6 +84,45 @@ void act(gate_t const& g, table_t& t)
 	}
 }
 
+std::vector<int> topo_sort(std::vector<gate_t> const& vg)
+{
+	std::vector<int> rv;
+	rv.reserve(vg.size());
+	std::vector<uint8_t> flgs (vg.size(), 1);
+	// 0x01 not dealt with
+	// 0x02 waiting i0_
+	// 0x04 waiting i1_;
+	std::ranges::transform(vg, flgs.begin(), [](auto const& g)
+		{
+			uint8_t u = 1;
+			if(g.in0_ > 0x80000000)
+				u |= 0x02;
+			if(g.in1_ > 0x80000000)
+				u |= 0x04;
+			return u;
+		});
+	while(!std::ranges::all_of(flgs, [](auto f){ return f == 0;} ))
+	{
+		for(int n = 0; n < vg.size(); ++n)
+		{
+			if((flgs[n] & 0x07) == 0x01) // inputs satisfied
+			{
+				rv.push_back(n);
+				flgs[n] = 0;
+				auto o = vg[n].out_;
+				for(int m = 0; m < vg.size(); ++m)
+				{
+					if(vg[m].in0_ == o)
+						flgs[m] &= ~0x02;
+					if(vg[m].in1_ == o)
+						flgs[m] &= ~0x04;
+				}
+			}
+		}
+	}
+	return rv;
+}
+
 auto get_input()
 {
 	std::vector<gate_t> rv;
@@ -91,7 +130,7 @@ auto get_input()
 	while(std::getline(std::cin, ln))
 	{
 		if(auto[m, i0, d] = ctre::match<"(\\d+|[a-z]+) -> ([a-z]+)">(ln); m)		// SET
-			rv.emplace_back(op_t::SET, nm_to_keyvar(i0), 0, nm_to_keyvar(d));
+			rv.emplace_back(op_t::SET, nm_to_keyvar(i0), 0x80000000, nm_to_keyvar(d));
 		else
 		if(auto[m, i0, i1, d] = ctre::match<"(\\d+|[a-z]+) AND (\\d+|[a-z]+) -> ([a-z]+)">(ln); m)		// AND
 			rv.emplace_back(op_t::AND, nm_to_keyvar(i0), nm_to_keyvar(i1), nm_to_keyvar(d));
@@ -100,7 +139,7 @@ auto get_input()
 			rv.emplace_back(op_t::OR, nm_to_keyvar(i0), nm_to_keyvar(i1), nm_to_keyvar(d));
 		else
 		if(auto[m, i0, d] = ctre::match<"NOT (\\d+|[a-z]+) -> ([a-z]+)">(ln); m)		// AND
-			rv.emplace_back(op_t::NOT, nm_to_keyvar(i0), 0, nm_to_keyvar(d));
+			rv.emplace_back(op_t::NOT, nm_to_keyvar(i0), 0x80000000, nm_to_keyvar(d));
 		else
 		if(auto[m, i0, i1, d] = ctre::match<"(\\d+|[a-z]+) LSHIFT (\\d+|[a-z]+) -> ([a-z]+)">(ln); m)		// AND
 			rv.emplace_back(op_t::LSHIFT, nm_to_keyvar(i0), nm_to_keyvar(i1), nm_to_keyvar(d));
@@ -110,21 +149,18 @@ auto get_input()
 		else
 			fmt::println("Line {} : didn't parse!", ln);
 	}
-	fmt::println("Got {} gates.", rv.size());
 	return rv;
 }
 
-uint16_t pt1(auto const& in)
+uint16_t pt1(auto const& in, auto const& order)
 {
-	timer t("p1");
+	timer t("p1a");
 	table_t tab;
-	for(int n = 0; n < 100; ++n)
-		for(auto& g: in)
-			act(g, tab);
+	for(auto g: order)
+			act(in[g], tab);
 	return tab.get(nm_to_keyvar("a"));
 }
-
-uint16_t pt2(auto& in, uint16_t b)
+uint16_t pt2(auto& in, uint16_t b, auto const& order)
 {
 	timer t("p2");
 	// edit the code
@@ -136,17 +172,17 @@ uint16_t pt2(auto& in, uint16_t b)
 			break;
 		}
 	table_t tab;
-	for(int n = 0; n < 100; ++n)
-		for(auto& g: in)
-			act(g, tab);
+	for(auto g: order)
+			act(in[g], tab);
 	return tab.get(nm_to_keyvar("a"));
 }
 
 int main()
 {
 	auto in = get_input();
-	auto p1 = pt1(in);
-	auto p2 = pt2(in, p1);
+	auto order = topo_sort(in);
+	auto p1 = pt1(in, order);
+	auto p2 = pt2(in, p1, order);
 	fmt::println("pt1 = {}", p1);
 	fmt::println("pt2 = {}", p2);
 }
