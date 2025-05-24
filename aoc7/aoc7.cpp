@@ -152,34 +152,33 @@ auto get_input()
 	return rv;
 }
 
-uint16_t pt1(auto const& in, auto const& order)
+uint16_t proc(auto const& in, auto const& order)
 {
-	timer t("p1a");
 	table_t tab;
 	for(auto g: order)
-			act(in[g], tab);
+		act(in[g], tab);
 	return tab.get(nm_to_keyvar("a"));
 }
+
+uint16_t pt1(auto const& in, auto const& order)
+{
+	timer t("p1");
+	return proc(in, order);
+}
+
 uint16_t pt2(auto& in, uint16_t b, auto const& order)
 {
 	timer t("p2");
-	// edit the code
 	auto bd = nm_to_keyvar("b");
-	for(auto& g: in)
-		if(g.op_ == op_t::SET && g.out_ == bd )
-		{
-			g.in0_ = b;
-			break;
-		}
-	table_t tab;
-	for(auto g: order)
-			act(in[g], tab);
-	return tab.get(nm_to_keyvar("a"));
+	auto bdg = std::ranges::find_if(in, [=](auto& g){ return g.op_ == op_t::SET && g.out_ == bd;});
+	(*bdg).in0_ = b;
+	return proc(in, order);
 }
 
 int main()
 {
 	auto in = get_input();
+	timer t("sort, p1, p2");
 	auto order = topo_sort(in);
 	auto p1 = pt1(in, order);
 	auto p2 = pt2(in, p1, order);
