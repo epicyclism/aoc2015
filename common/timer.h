@@ -3,6 +3,8 @@
 #include <string_view>
 #include <chrono>
 
+#include <fmt/format.h>
+
 using namespace std::literals;
 
 // trivial timer object that just writes v xxus to std::out where v is supplied in constructor
@@ -31,7 +33,7 @@ public:
 	{
 		auto end = std::chrono::high_resolution_clock().now();
 		if(!cancel_)
-			std::cout << "(" << v_ << ": " << std::chrono::duration_cast<std::chrono::microseconds>(end - start_).count() << "us)\n";
+			fmt::println("({}: {}us)", v_, std::chrono::duration_cast<std::chrono::microseconds>(end - start_).count());
 	}
 	void cancel()
 	{

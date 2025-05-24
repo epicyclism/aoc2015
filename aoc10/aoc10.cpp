@@ -1,12 +1,7 @@
-#include <iostream>
 #include <string>
-#include <algorithm>
-#include <numeric>
-#include <ranges>
 
 #include <fmt/format.h>
 
-#include "ctre_inc.h"
 #include "timer.h"
 
 std::string transform(std::string_view s)
