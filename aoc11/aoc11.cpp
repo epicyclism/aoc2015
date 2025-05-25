@@ -6,18 +6,17 @@
 
 void increment(std::string& pw)
 {
-	int carry = 0;
 	++pw[0];
-	for(auto& c: pw)
+	if(pw[0] > 'z')
 	{
-		c += carry;
-		if( c > 'z')
+		pw[0] = 'a';
+		for(int n = 1; n < pw.size(); ++n)
 		{
-			carry = 1;
-			c = 'a';
-		}
-		else
-			return;
+			++pw[n];
+			if(pw[n] <= 'z')
+				break;
+			pw[n] = 'a';
+		}	
 	}
 }
 
@@ -29,22 +28,16 @@ bool valid(std::string const& pw)
 			return false;
 	// valid pairs?
 	int n = 1;
-	bool p1 = false;
+	for(; n < pw.size() - 2; ++n)
+		if( pw[n - 1] == pw[n])
+			break;
+	if(n == pw.size() - 2)
+		return false;
+	n += 2;
 	for(; n < pw.size(); ++n)
 		if( pw[n - 1] == pw[n])
-		{
-			n += 2;
-			p1 = true;
 			break;
-		}
-	bool p2 = false;
-	for(; n < pw.size(); ++n)
-		if( pw[n - 1] == pw[n])
-		{
-			p2 = true;
-			break;
-		}
-	if( !(p1 && p2))
+	if( n == pw.size())
 		return false;
 	// valid 'straight' (remember password is backwards...)
 	for(n = 2; n < pw.size(); ++n)
