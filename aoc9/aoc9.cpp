@@ -29,11 +29,6 @@ unsigned add_flg(unsigned u, size_t id)
 	return u | (1 << id);
 }
 
-//unsigned remove_flg(unsigned u, size_t id)
-//{
-//	return u & ~(1 << id);
-//}
-
 bool seen(unsigned u, size_t id)
 {
 	return u & (1 << id);

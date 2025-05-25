@@ -3,8 +3,10 @@
 
 #include <fmt/format.h>
 
+#if defined(USE_BOOST)
 #define BOOST_JSON_NO_LIB
 #include <boost/json/src.hpp>
+#endif
 
 #include "timer.h"
 
@@ -43,6 +45,7 @@ int pt1(auto const& in)
 	return s;
 }
 
+#if defined(USE_BOOST)
 using namespace boost::json;
 
 int64_t sum_not_red(auto& jv)
@@ -84,6 +87,13 @@ int64_t pt2(auto const& in)
 
 	return sum_not_red(jv);
 }
+#else
+int64_t pt2(auto const& in)
+{
+	fmt::println("No Boost, so no pt2");
+	return 0;
+}
+#endif
 
 int main()
 {
