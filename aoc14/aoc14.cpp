@@ -24,13 +24,11 @@ auto get_input()
 	std::string ln;
 	while(std::getline(std::cin, ln))
 	{
-		// Comet can fly 14 km/s for 10 seconds, but then must rest for 127 seconds.
 		if(auto[m, n, s, g, r] = ctre::match<"([a-zA-Z]+) can fly (\\d+) km/s for (\\d+) seconds, but then must rest for (\\d+) seconds.">(ln); m)
 			vr.emplace_back(n.to_string(), s.to_number<int>(), g.to_number<int>(), r.to_number<int>());
 		else
 			fmt::println("failed to parse \"{}\"", ln);
 	}
-	fmt::println("got {} reindeer", vr.size());
 	return vr;
 }
 
