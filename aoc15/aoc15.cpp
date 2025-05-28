@@ -62,16 +62,6 @@ std::pair<int, int> compute(std::vector<ingredient> const& v, std::vector<int> c
 	return {std::ranges::fold_left(tmp, 1, std::multiplies<>()), c};
 }
 
-void dump(auto const& in)
-{
-	for(auto& i: in)
-		fmt::println("{} {} {} {} {} {}", i.nm_, i.properties_[0],
-			i.properties_[1],
-			i.properties_[2],
-			i.properties_[3],
-			i.calories_);
-}
-
 std::pair<int, int> pt12(auto const& in)
 {
 	timer t("p1");
@@ -111,7 +101,6 @@ std::pair<int, int> pt12(auto const& in)
 int main()
 {
 	auto in = get_input();
-	dump(in);
 	auto[p1, p2] = pt12(in);
 	fmt::println("pt1 = {}", p1);
 	fmt::println("pt2 = {}", p2);
