@@ -1,15 +1,9 @@
 #include <iostream>
 #include <string>
 #include <bitset>
-#include <array>
-
-#include <algorithm>
-#include <numeric>
-#include <ranges>
 
 #include <fmt/format.h>
 
-#include "ctre_inc.h"
 #include "timer.h"
 
 template<int D> struct grid_t
