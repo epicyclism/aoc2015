@@ -1,7 +1,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <set>
+#include <unordered_set>
+#include <algorithm>
 
 #include <fmt/format.h>
 
@@ -26,7 +27,7 @@ auto get_input()
 int pt1(auto const& in)
 {
 	timer t("p1");
-	std::set<std::string> s;
+	std::unordered_set<std::string> s;
 	auto& tgt = in.second;
 	auto& reps = in.first;
 
@@ -46,10 +47,29 @@ int pt1(auto const& in)
 	return s.size();
 }
 
+size_t count_substrings(std::string_view tgt, std::string_view s)
+{
+	size_t cnt = 0;
+	auto ht = tgt.find(s, 0);
+	while(ht != std::string::npos)
+	{
+		++cnt;
+		ht = tgt.find(s, ht + 1);
+	}
+	return cnt;
+}
+
 int pt2(auto const& in)
 {
 	timer t("p2");
-	return 0;
+	auto& tgt = in.second;
+	auto elements = std::ranges::count_if(tgt, [](auto c){ return std::isupper(c);});
+	auto Y = std::ranges::count(tgt, 'Y');
+	auto RnAr = count_substrings(tgt, "Rn") + count_substrings(tgt, "Ar");
+	// every substitution adds an element other than the first which adds two.
+	// Rn Ar and Y are free bonuses and you can get two Ys from a single substitution.
+	// So this gives the minimum, assume it's possible?
+	return elements - RnAr - 2 * Y - 1;
 }
 
 int main()
