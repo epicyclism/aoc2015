@@ -15,6 +15,7 @@ struct effect
 	int armour_;
 	int edamage_;
 	int bonus_;
+	int key_;
 };
 
 struct spell
@@ -27,11 +28,11 @@ struct spell
 
 constexpr spell spells[]
 {
-	{  53, 4, 0, 0, 0, 0,   0 },
-	{  73, 2, 2, 0, 0, 0,   0},
-	{ 113, 0, 0, 6, 7, 0,   0},
-	{ 173, 0, 0, 6, 0, 3,   0},
-	{ 229, 0, 0, 5, 0, 0, 101}
+	{  53, 4, 0, 0, 0, 0,   0, -1},
+	{  73, 2, 2, 0, 0, 0,   0, -1},
+	{ 113, 0, 0, 6, 7, 0,   0,  0},
+	{ 173, 0, 0, 6, 0, 3,   0,  1},
+	{ 229, 0, 0, 5, 0, 0, 101,  2}
 };
 
 struct game_state
@@ -47,14 +48,11 @@ struct game_state
 
 bool valid_spell(spell const& sp, game_state const& gs)
 {
-	if (sp.ef_.dur_ == 0)
+	if (sp.cost_ > gs.plr_mana_)
+		return false;
+	if (sp.ef_.key_ == -1)
 		return true;
-	for (auto& e : gs.ef_)
-		if ((e.dur_ > 1 ) && ((e.armour_ && (e.armour_ == sp.ef_.armour_))
-			|| ( e.bonus_ && ( e.bonus_ == sp.ef_.bonus_))
-			|| ( e.edamage_ && (e.edamage_ == sp.ef_.edamage_))))
-			return false;
-	return true;
+	return gs.ef_[sp.ef_.key_].dur_ == 0;
 }
 
 void apply_effects(game_state& gs)
@@ -62,7 +60,7 @@ void apply_effects(game_state& gs)
 	gs.plr_armour_ = 0;
 	for (auto& e : gs.ef_)
 	{
-		if (e.dur_)
+		if (e.dur_ > 0)
 		{
 			--e.dur_;
 			if (e.armour_)
@@ -77,37 +75,22 @@ void apply_spell(spell const& sp, game_state& gs)
 {
 	gs.plr_mana_ -= sp.cost_;
 	gs.plr_spnd_ += sp.cost_;
-	if (gs.plr_mana_ <= 0)
-		return;
 	gs.boss_hp_ -= sp.damage_;
 	gs.plr_hp_ += sp.heal_;
 
 	// install effect
 	if (sp.ef_.dur_)
-	{
-		for (auto& e : gs.ef_)
-		{
-			if (e.dur_ == 0)
-			{
-				e = sp.ef_;
-				return;
-			}
-		}
-	}
+		gs.ef_[sp.ef_.key_] = sp.ef_;
 }
 
 bool over(game_state const& gs, int& mana)
 {
-	if (gs.plr_mana_ < 0)
-		return true;
+//	if (gs.plr_mana_ <= 0)
+//		return true;
 	if (gs.boss_hp_ <= 0)
 	{
 		if (gs.plr_spnd_ < mana)
-		{
 			mana = gs.plr_spnd_;
-
-		}
-		fmt::println("pwon {}", mana);
 		return true;
 	}
 	if (gs.plr_hp_ <= 0)
@@ -117,6 +100,9 @@ bool over(game_state const& gs, int& mana)
 
 void play_spell(spell const& sp, game_state gs, int penalty, int& mana)
 {
+//	fmt::println("Player has {} hit points, {} armour, {} mana.", gs.plr_hp_, gs.plr_armour_, gs.plr_mana_);
+//	fmt::println("Boss has   {} hit points.", gs.boss_hp_);
+
 	gs.plr_hp_ -= penalty;
 	if (over(gs, mana))
 		return;
@@ -128,7 +114,6 @@ void play_spell(spell const& sp, game_state gs, int penalty, int& mana)
 	apply_spell(sp, gs);
 	if (over(gs, mana))
 		return;
-
 	// boss turn
 	apply_effects(gs);
 	if (over(gs, mana))
@@ -163,10 +148,21 @@ auto get_input()
 	return std::make_pair(param[0], param[1]);
 }
 
+void test2()
+{
+	game_state gs{ 10, 250, 0, 0, 14, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	int mana = 10000;
+	play_spell(spells[4], gs, 0, mana);
+	play_spell(spells[2], gs, 0, mana);
+	play_spell(spells[1], gs, 0, mana);
+	play_spell(spells[3], gs, 0, mana);
+	play_spell(spells[0], gs, 0, mana);
+}
+
 int pt1(auto hpd)
 {
 	timer t("p1");
-	game_state gs{ 50, 500, 0, 0, hpd.first, hpd.second, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	game_state gs{ 50, 500, 0, 0, hpd.first, hpd.second, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 	int mana = std::numeric_limits<int>::max();
 	for (auto const& s : spells)
 		play_spell(s, gs, 0, mana);
@@ -183,6 +179,7 @@ int pt2(auto b)
 int main()
 {
 	auto in = get_input();
+//	test2();
 	auto p1 = pt1(in);
 	auto p2 = pt2(in);
 	fmt::println("pt1 = {}", p1);
