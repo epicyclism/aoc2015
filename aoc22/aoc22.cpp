@@ -1,9 +1,6 @@
 #include <iostream>
 #include <string>
-#include <algorithm>
-#include <numeric>
-#include <ranges>
-
+#include <array>
 #include <fmt/format.h>
 
 #include "ctre_inc.h"
@@ -16,6 +13,7 @@ struct effect
 	int edamage_;
 	int bonus_;
 	int key_;
+ 	bool operator<=>(effect const& x) const = default;
 };
 
 struct spell
@@ -43,7 +41,7 @@ struct game_state
 	int plr_armour_;
 	int boss_hp_;
 	int boss_damage_;
-	effect ef_[3];
+	std::array<effect, 3> ef_;
 };
 
 bool valid_spell(spell const& sp, game_state const& gs)
@@ -52,7 +50,7 @@ bool valid_spell(spell const& sp, game_state const& gs)
 		return false;
 	if (sp.ef_.key_ == -1)
 		return true;
-	return gs.ef_[sp.ef_.key_].dur_ == 0;
+	return gs.ef_[sp.ef_.key_].dur_ < 2;
 }
 
 void apply_effects(game_state& gs)
@@ -85,8 +83,6 @@ void apply_spell(spell const& sp, game_state& gs)
 
 bool over(game_state const& gs, int& mana)
 {
-//	if (gs.plr_mana_ <= 0)
-//		return true;
 	if (gs.boss_hp_ <= 0)
 	{
 		if (gs.plr_spnd_ < mana)
@@ -100,9 +96,6 @@ bool over(game_state const& gs, int& mana)
 
 void play_spell(spell const& sp, game_state gs, int penalty, int& mana)
 {
-//	fmt::println("Player has {} hit points, {} armour, {} mana.", gs.plr_hp_, gs.plr_armour_, gs.plr_mana_);
-//	fmt::println("Boss has   {} hit points.", gs.boss_hp_);
-
 	gs.plr_hp_ -= penalty;
 	if (over(gs, mana))
 		return;
@@ -112,6 +105,8 @@ void play_spell(spell const& sp, game_state gs, int penalty, int& mana)
 		return;
 	// player turn
 	apply_spell(sp, gs);
+	if(gs.plr_spnd_ >= mana) // this path cannot improve!
+		return;
 	if (over(gs, mana))
 		return;
 	// boss turn
@@ -124,13 +119,10 @@ void play_spell(spell const& sp, game_state gs, int penalty, int& mana)
 	gs.plr_hp_ -= bp;
 	if (over(gs, mana))
 		return;
-
 	// next move
 	for (auto const& s : spells)
-	{
 		if (valid_spell(s, gs))
 			play_spell(s, gs, penalty, mana);
-	}
 }
 
 auto get_input()
@@ -148,17 +140,6 @@ auto get_input()
 	return std::make_pair(param[0], param[1]);
 }
 
-void test2()
-{
-	game_state gs{ 10, 250, 0, 0, 14, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-	int mana = 10000;
-	play_spell(spells[4], gs, 0, mana);
-	play_spell(spells[2], gs, 0, mana);
-	play_spell(spells[1], gs, 0, mana);
-	play_spell(spells[3], gs, 0, mana);
-	play_spell(spells[0], gs, 0, mana);
-}
-
 int pt1(auto hpd)
 {
 	timer t("p1");
@@ -170,16 +151,20 @@ int pt1(auto hpd)
 	return mana;
 }
 
-int pt2(auto b)
+int pt2(auto hpd)
 {
 	timer t("p2");
-	return 0;
+	game_state gs{ 50, 500, 0, 0, hpd.first, hpd.second, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	int mana = std::numeric_limits<int>::max();
+	for (auto const& s : spells)
+		play_spell(s, gs, 1, mana);
+
+	return mana;
 }
 
 int main()
 {
 	auto in = get_input();
-//	test2();
 	auto p1 = pt1(in);
 	auto p2 = pt2(in);
 	fmt::println("pt1 = {}", p1);
