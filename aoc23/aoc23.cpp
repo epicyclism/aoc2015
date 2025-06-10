@@ -122,7 +122,6 @@ uint64_t pt2(auto const& in)
 int main()
 {
 	auto in = get_input();
-	fmt::println("got {} instructions", in.size());
 	auto p1 = pt1(in);
 	auto p2 = pt2(in);
 	fmt::println("pt1 = {}", p1);
