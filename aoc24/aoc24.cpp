@@ -5,6 +5,7 @@
 #include <numeric>
 #include <ranges>
 #include <limits>
+#include <bit>
 #include <fmt/format.h>
 
 #include "ctre_inc.h"
@@ -18,19 +19,6 @@ auto get_input()
 		v.emplace_back(sv_to_t<char>(ln));
 
 	return v;
-}
-
-int popcnt(unsigned u)
-{
-	unsigned b = 1;
-	int cnt = 0;
-	for(auto i = 0; i < 32; ++i)
-	{
-		if(u & b)
-			++cnt;
-		b <<= 1;
-	}
-	return cnt;
 }
 
 uint64_t qent(auto const& seq, uint32_t u)
@@ -63,7 +51,7 @@ std::vector<uint32_t> possibles(auto const& seq, int tgt)
 			}) == tgt)
 			v.emplace_back(u);
 	}
-	std::ranges::sort(v, [](auto l, auto r){return popcnt(l) < popcnt(r);});
+	std::ranges::sort(v, [](auto l, auto r){return std::popcount(l) < std::popcount(r);});
 
 	return v;
 }
@@ -109,10 +97,10 @@ auto pt1(auto const& in)
 	auto sm = std::ranges::fold_left(in, 0, std::plus<>());
 	auto v = possibles(in, sm / 3);
 	uint64_t r = std::numeric_limits<uint64_t>::max();
-	auto pci = popcnt(v[0]);
+	auto pci = std::popcount(v[0]);
 	for(int n = 0; n < v.size(); ++n)
 	{
-		if(popcnt(v[n]) > pci)
+		if(std::popcount(v[n]) > pci)
 			break;
 		if(has_triple(v, v[n]))
 		{
@@ -131,10 +119,10 @@ auto pt2(auto const& in)
 	auto sm = std::ranges::fold_left(in, 0, std::plus<>());
 	auto v = possibles(in, sm / 4);
 	uint64_t r = std::numeric_limits<uint64_t>::max();
-	auto pci = popcnt(v[0]);
+	auto pci = std::popcount(v[0]);
 	for(int n = 0; n < v.size(); ++n)
 	{
-		if(popcnt(v[n]) > pci)
+		if(std::popcount(v[n]) > pci)
 			break;
 		if(has_quad(v, v[n]))
 		{
